@@ -79,6 +79,13 @@ def snapshot_on_error(method):
     return wrapper
 
 
+def pause_and_execute(execute_func):
+    def _wrapped(*args, **kwargs):
+        import time; time.sleep(0.1)
+        return execute_func(*args, **kwargs)
+    return _wrapped
+
+
 class BrowserTestCase(unittest.TestCase):
     """Browser test case that can be used with Selenium Webdriver to
     functionally test a website
@@ -109,6 +116,9 @@ class BrowserTestCase(unittest.TestCase):
                     ", ".join(supported_drivers),))
 
         self._driver = driver()
+        execute_func = self._driver.execute
+        self._driver.execute = pause_and_execute(execute_func)
+
         self._driver.set_window_size(*size)
         self.browsers.append(self._driver)
         self.addCleanup(self._driver.close)
